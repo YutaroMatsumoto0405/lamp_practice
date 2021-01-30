@@ -15,7 +15,7 @@ function get_db_connect(){
   }
   return $dbh;
 }
-
+// select文
 function fetch_query($db, $sql, $params = array()){
   try{
     $statement = $db->prepare($sql);
@@ -26,7 +26,7 @@ function fetch_query($db, $sql, $params = array()){
   }
   return false;
 }
-
+// select文
 function fetch_all_query($db, $sql, $params = array()){
   try{
     $statement = $db->prepare($sql);
@@ -37,7 +37,7 @@ function fetch_all_query($db, $sql, $params = array()){
   }
   return false;
 }
-
+// update文、delete文
 function execute_query($db, $sql, $params = array()){
   try{
     $statement = $db->prepare($sql);

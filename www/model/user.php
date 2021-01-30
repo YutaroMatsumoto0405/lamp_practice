@@ -1,7 +1,7 @@
 <?php
 require_once MODEL_PATH . 'functions.php';
 require_once MODEL_PATH . 'db.php';
-
+// ユーザー情報を取得
 function get_user($db, $user_id){
   $sql = "
     SELECT
@@ -12,7 +12,7 @@ function get_user($db, $user_id){
     FROM
       users
     WHERE
-      user_id = {$user_id}
+      user_id = ?
     LIMIT 1
   ";
 
@@ -29,7 +29,7 @@ function get_user_by_name($db, $name){
     FROM
       users
     WHERE
-      name = '{$name}'
+      name = ?
     LIMIT 1
   ";
 
@@ -44,13 +44,13 @@ function login_as($db, $name, $password){
   set_session('user_id', $user['user_id']);
   return $user;
 }
-
+// ログインユーザの情報取得
 function get_login_user($db){
   $login_user_id = get_session('user_id');
 
   return get_user($db, $login_user_id);
 }
-
+// ユーザー登録
 function regist_user($db, $name, $password, $password_confirmation) {
   if( is_valid_user($name, $password, $password_confirmation) === false){
     return false;
@@ -104,7 +104,7 @@ function insert_user($db, $name, $password){
   $sql = "
     INSERT INTO
       users(name, password)
-    VALUES ('{$name}', '{$password}');
+    VALUES (?, ?);
   ";
 
   return execute_query($db, $sql);

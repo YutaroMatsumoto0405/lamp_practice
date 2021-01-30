@@ -3,7 +3,7 @@ require_once MODEL_PATH . 'functions.php';
 require_once MODEL_PATH . 'db.php';
 
 // DB利用
-
+// 送信された$item_idに一致するデータを返す
 function get_item($db, $item_id){
   $sql = "
     SELECT
@@ -16,7 +16,7 @@ function get_item($db, $item_id){
     FROM
       items
     WHERE
-      item_id = {$item_id}
+      item_id = ?
   ";
 
   return fetch_query($db, $sql);
@@ -34,6 +34,7 @@ function get_items($db, $is_open = false){
     FROM
       items
   ';
+  // ステータス的に買えるやつに絞る
   if($is_open === true){
     $sql .= '
       WHERE status = 1
@@ -42,11 +43,11 @@ function get_items($db, $is_open = false){
 
   return fetch_all_query($db, $sql);
 }
-
+// 全部の商品情報を取得
 function get_all_items($db){
   return get_items($db);
 }
-
+// ステータス的に買える商品の情報を取得
 function get_open_items($db){
   return get_items($db, true);
 }
@@ -58,7 +59,7 @@ function regist_item($db, $name, $price, $stock, $status, $image){
   }
   return regist_item_transaction($db, $name, $price, $stock, $status, $image, $filename);
 }
-
+// トランザクション
 function regist_item_transaction($db, $name, $price, $stock, $status, $image, $filename){
   $db->beginTransaction();
   if(insert_item($db, $name, $price, $stock, $filename, $status) 
@@ -70,7 +71,7 @@ function regist_item_transaction($db, $name, $price, $stock, $status, $image, $f
   return false;
   
 }
-
+// 商品の新規登録
 function insert_item($db, $name, $price, $stock, $filename, $status){
   $status_value = PERMITTED_ITEM_STATUSES[$status];
   $sql = "
@@ -82,34 +83,34 @@ function insert_item($db, $name, $price, $stock, $filename, $status){
         image,
         status
       )
-    VALUES('{$name}', {$price}, {$stock}, '{$filename}', {$status_value});
+    VALUES(?, ?, ?, '?', ?);
   ";
 
   return execute_query($db, $sql);
 }
-
+// ステータスの変更
 function update_item_status($db, $item_id, $status){
   $sql = "
     UPDATE
       items
     SET
-      status = {$status}
+      status = ?
     WHERE
-      item_id = {$item_id}
+      item_id = ?
     LIMIT 1
   ";
   
   return execute_query($db, $sql);
 }
-
+// 在庫数の変更
 function update_item_stock($db, $item_id, $stock){
   $sql = "
     UPDATE
       items
     SET
-      stock = {$stock}
+      stock = ?
     WHERE
-      item_id = {$item_id}
+      item_id = ?
     LIMIT 1
   ";
   
@@ -130,13 +131,13 @@ function destroy_item($db, $item_id){
   $db->rollback();
   return false;
 }
-
+// itemidに一致する商品の削除
 function delete_item($db, $item_id){
   $sql = "
     DELETE FROM
       items
     WHERE
-      item_id = {$item_id}
+      item_id = ?
     LIMIT 1
   ";
   
@@ -149,7 +150,7 @@ function delete_item($db, $item_id){
 function is_open($item){
   return $item['status'] === 1;
 }
-
+// 商品情報のバリデーション(入力内容が問題ないか、文字数や半角など)
 function validate_item($name, $price, $stock, $filename, $status){
   $is_valid_item_name = is_valid_item_name($name);
   $is_valid_item_price = is_valid_item_price($price);
@@ -163,7 +164,7 @@ function validate_item($name, $price, $stock, $filename, $status){
     && $is_valid_item_filename
     && $is_valid_item_status;
 }
-
+// nameのバリデーション
 function is_valid_item_name($name){
   $is_valid = true;
   if(is_valid_length($name, ITEM_NAME_LENGTH_MIN, ITEM_NAME_LENGTH_MAX) === false){
@@ -172,7 +173,7 @@ function is_valid_item_name($name){
   }
   return $is_valid;
 }
-
+// priceのバリデーション
 function is_valid_item_price($price){
   $is_valid = true;
   if(is_positive_integer($price) === false){
@@ -181,7 +182,7 @@ function is_valid_item_price($price){
   }
   return $is_valid;
 }
-
+// stockのバリデーション
 function is_valid_item_stock($stock){
   $is_valid = true;
   if(is_positive_integer($stock) === false){
@@ -190,7 +191,7 @@ function is_valid_item_stock($stock){
   }
   return $is_valid;
 }
-
+// filenameのバリデーション
 function is_valid_item_filename($filename){
   $is_valid = true;
   if($filename === ''){
@@ -198,7 +199,7 @@ function is_valid_item_filename($filename){
   }
   return $is_valid;
 }
-
+// statusのバリデーション
 function is_valid_item_status($status){
   $is_valid = true;
   if(isset(PERMITTED_ITEM_STATUSES[$status]) === false){
